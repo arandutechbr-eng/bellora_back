@@ -1,7 +1,9 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, File, UploadFile
 import shutil
 from pathlib import Path
 from uuid import uuid4
+
+from app.core.config import settings
 
 router = APIRouter(prefix="/uploads", tags=["Uploads"])
 
@@ -17,7 +19,8 @@ def upload_image(file: UploadFile = File(...)):
     with file_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    base_url = settings.PUBLIC_API_BASE_URL.rstrip("/")
     return {
         "filename": filename,
-        "url": f"http://127.0.0.1:8000/media/{filename}"
+        "url": f"{base_url}/media/{filename}",
     }

@@ -77,7 +77,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 # =========================
 # Rotas
 # =========================
-app.include_router(api_router)
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 # =========================
 # Startup
@@ -108,5 +108,7 @@ def on_startup():
 def root():
     return {
         "status": "online",
-        "app": "Zola Serviços API"
+        "app": "Zola Serviços API",
+        "api": settings.API_V1_PREFIX,
+        "docs": "/docs",
     }
