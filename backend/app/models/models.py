@@ -47,7 +47,8 @@ class Professional(Base):
     image: Mapped[str | None] = mapped_column(String(500), nullable=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
-    professional_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # diarista | baba
+    professional_type: Mapped[str | None] = mapped_column(String(30), nullable=True)  # slug da categoria
+    biography: Mapped[str | None] = mapped_column(Text, nullable=True)
     job_specs: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON
     availability: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON semanal
 
@@ -55,6 +56,22 @@ class Professional(Base):
     category = relationship("Category", back_populates="professionals")
     reviews = relationship("Review", back_populates="professional")
     appointments = relationship("Appointment", back_populates="professional")
+    services = relationship("Service", back_populates="professional")
+
+
+class Service(Base):
+    __tablename__ = "services"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    professional_id: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    duration: Mapped[int] = mapped_column(Integer, default=60)  # minutos
+    price: Mapped[float] = mapped_column(Float, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    professional = relationship("Professional", back_populates="services")
+    appointments = relationship("Appointment", back_populates="service")
 
 
 class Appointment(Base):
@@ -63,6 +80,7 @@ class Appointment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     professional_id: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
     client_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    service_id: Mapped[int | None] = mapped_column(ForeignKey("services.id"), nullable=True)
     appointment_date: Mapped[date] = mapped_column(Date, nullable=False)
     time_slot: Mapped[str] = mapped_column(String(10), nullable=False)
     status: Mapped[str] = mapped_column(String(30), default="awaiting_payment")
@@ -79,6 +97,7 @@ class Appointment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     professional = relationship("Professional", back_populates="appointments")
+    service = relationship("Service", back_populates="appointments")
 
 
 class Review(Base):
@@ -86,6 +105,7 @@ class Review(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     professional_id: Mapped[int] = mapped_column(ForeignKey("professionals.id"), nullable=False)
+    appointment_id: Mapped[int | None] = mapped_column(ForeignKey("appointments.id"), nullable=True)
     client_name: Mapped[str] = mapped_column(String(120), nullable=False)
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
     comment: Mapped[str] = mapped_column(Text, nullable=False)

@@ -23,6 +23,27 @@ def run_migrations(engine: Engine) -> None:
                 conn.execute(text("ALTER TABLE professionals ADD COLUMN job_specs TEXT"))
             if "availability" not in columns:
                 conn.execute(text("ALTER TABLE professionals ADD COLUMN availability TEXT"))
+            if "biography" not in columns:
+                conn.execute(text("ALTER TABLE professionals ADD COLUMN biography TEXT"))
+
+    if "services" not in inspector.get_table_names():
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE services (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        professional_id INTEGER NOT NULL,
+                        title VARCHAR(160) NOT NULL,
+                        description TEXT NOT NULL DEFAULT '',
+                        duration INTEGER DEFAULT 60,
+                        price REAL DEFAULT 0,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY(professional_id) REFERENCES professionals(id)
+                    )
+                    """
+                )
+            )
 
     if "appointments" not in inspector.get_table_names():
         with engine.begin() as conn:
@@ -73,3 +94,11 @@ def run_migrations(engine: Engine) -> None:
                 conn.execute(text("ALTER TABLE appointments ADD COLUMN payment_mode VARCHAR(20) DEFAULT 'deposit'"))
             if "amount_due" not in columns:
                 conn.execute(text("ALTER TABLE appointments ADD COLUMN amount_due REAL DEFAULT 0"))
+            if "service_id" not in columns:
+                conn.execute(text("ALTER TABLE appointments ADD COLUMN service_id INTEGER REFERENCES services(id)"))
+
+    if "reviews" in inspector.get_table_names():
+        columns = _column_names(inspector, "reviews")
+        with engine.begin() as conn:
+            if "appointment_id" not in columns:
+                conn.execute(text("ALTER TABLE reviews ADD COLUMN appointment_id INTEGER REFERENCES appointments(id)"))

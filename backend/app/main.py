@@ -15,7 +15,7 @@ from app.db.seed import ensure_default_availability, ensure_extra_categories, se
 from app.db.migrate import run_migrations
 
 app = FastAPI(
-    title="Zola Serviços API",
+    title="Bellora API",
     version="1.0.0"
 )
 
@@ -107,7 +107,7 @@ def on_startup():
             )
         else:
             hint = (
-                "Verifique DATABASE_URL no Render. Local: sqlite:///./zola.db. "
+                "Verifique DATABASE_URL no Render. Local: sqlite:///./bellora.db. "
                 "Senhas com $ na URL precisam ser %24."
             )
         raise RuntimeError(f"Não foi possível conectar ao banco de dados. {hint}") from exc
@@ -119,7 +119,7 @@ def on_startup():
 def root():
     return {
         "status": "online",
-        "app": "Zola Serviços API",
+        "app": "Bellora API",
         "api": settings.API_V1_PREFIX,
         "docs": "/docs",
         "storage": {

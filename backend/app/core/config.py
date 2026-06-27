@@ -24,7 +24,7 @@ def normalize_database_url(url: str) -> str:
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Zola Serviços API"
+    APP_NAME: str = "Bellora API"
     API_V1_PREFIX: str = "/api/v1"
 
     DATABASE_URL: str
@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
-    SUPABASE_STORAGE_BUCKET: str = "zola-uploads"
+    SUPABASE_STORAGE_BUCKET: str = "bellora-uploads"
 
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""

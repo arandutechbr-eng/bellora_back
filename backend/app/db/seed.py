@@ -2,7 +2,7 @@ import json
 
 from app.core.security import hash_password
 from app.db.session import Base, SessionLocal, engine
-from app.models.models import Category, Message, Professional, Review, ServiceRequest, User
+from app.models.models import Category, Message, Professional, Review, Service, ServiceRequest, User
 
 DEFAULT_AVAILABILITY = json.dumps({
     "monday": ["08:00", "09:00", "14:00"],
@@ -14,23 +14,20 @@ DEFAULT_AVAILABILITY = json.dumps({
     "sunday": [],
 })
 
-DIARISTA_SPECS = json.dumps({
-    "tipo_limpeza": "residencial",
-    "frequencia": "semanal",
-    "traz_material": False,
-    "metros_aprox": 80,
-    "inclui_cozinha": True,
-    "inclui_banheiros": True,
-    "inclui_passar_roupa": False,
+BEAUTY_SPECS = json.dumps({
+    "especialidade": "Coloração e tratamentos",
+    "experiencia_anos": 5,
+    "atendimento_domicilio": False,
+    "atendimento_salao": True,
+    "aceita_cartao": True,
 })
 
-BABA_SPECS = json.dumps({
-    "faixa_etaria": "0-3 anos",
-    "experiencia_anos": 5,
-    "turnos": ["manhã", "tarde"],
-    "numero_criancas": 2,
-    "primeiros_socorros": True,
-    "ajuda_tarefas_domesticas": True,
+NAIL_SPECS = json.dumps({
+    "especialidade": "Nail art e alongamento",
+    "experiencia_anos": 4,
+    "atendimento_domicilio": True,
+    "atendimento_salao": True,
+    "aceita_cartao": True,
 })
 
 
@@ -53,83 +50,146 @@ def ensure_default_availability():
 
 
 def ensure_extra_categories():
-    """Garante que as categorias Diarista e Babá existam."""
+    """Garante que todas as categorias Bellora existam."""
+    from app.constants.categories import BEAUTY_CATEGORIES
+
     db = SessionLocal()
     try:
-        for name, icon, description in [
-            ("Diarista", "FaBroom", "Limpeza residencial e comercial"),
-            ("Babá", "FaBaby", "Cuidado de crianças e apoio familiar"),
-        ]:
+        for slug, name, description in BEAUTY_CATEGORIES:
             exists = db.query(Category).filter(Category.name == name).first()
             if not exists:
-                db.add(Category(name=name, icon=icon, description=description))
+                db.add(Category(name=name, icon=slug, description=description))
         db.commit()
     finally:
         db.close()
 
 
 def seed_database():
+    from app.constants.categories import BEAUTY_CATEGORIES
+
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         if db.query(User).first():
             return
 
-        client = User(name="Anderson Cliente", email="cliente@zola.com", password_hash=hash_password("123456"), role="client")
-        pro_diarista = User(name="Mariana Costa", email="diarista@zola.com", password_hash=hash_password("123456"), role="professional")
-        pro_baba = User(name="Patrícia Souza", email="baba@zola.com", password_hash=hash_password("123456"), role="professional")
-        db.add_all([client, pro_diarista, pro_baba])
+        client = User(
+            name="Ana Cliente",
+            email="cliente@bellora.com",
+            password_hash=hash_password("123456"),
+            role="client",
+        )
+        pro_cabelo = User(
+            name="Juliana Mendes",
+            email="cabelo@bellora.com",
+            password_hash=hash_password("123456"),
+            role="professional",
+        )
+        pro_unhas = User(
+            name="Camila Rocha",
+            email="unhas@bellora.com",
+            password_hash=hash_password("123456"),
+            role="professional",
+        )
+        db.add_all([client, pro_cabelo, pro_unhas])
         db.flush()
 
         cats = [
-            Category(name="Diarista", icon="FaBroom", description="Limpeza residencial e comercial"),
-            Category(name="Babá", icon="FaBaby", description="Cuidado de crianças e apoio familiar"),
+            Category(name=name, icon=slug, description=desc)
+            for slug, name, desc in BEAUTY_CATEGORIES
         ]
         db.add_all(cats)
         db.flush()
 
+        cat_map = {c.icon: c for c in cats}
+
         profs = [
             Professional(
-                user_id=pro_diarista.id,
-                category_id=cats[0].id,
-                title="Diarista caprichosa",
-                description="Limpeza pesada, pós-obra e organização de ambientes.",
-                city="Praia Grande",
+                user_id=pro_cabelo.id,
+                category_id=cat_map["cabelo"].id,
+                title="Colorista e cabeleireira",
+                description="Especialista em coloração, mechas e tratamentos capilares com produtos premium.",
+                city="Santos",
                 state="SP",
-                price_from=160,
-                rating=4.8,
-                reviews_count=51,
+                price_from=120,
+                rating=4.9,
+                reviews_count=87,
                 whatsapp="5513977777777",
                 is_featured=True,
-                image="https://images.unsplash.com/photo-1581578731548-c64695cc6952",
-                professional_type="diarista",
-                job_specs=DIARISTA_SPECS,
+                image="https://images.unsplash.com/photo-1560066984-138dadb4c035",
+                professional_type="cabelo",
+                biography="Mais de 8 anos transformando visuais com técnica e cuidado.",
+                job_specs=BEAUTY_SPECS,
                 availability=DEFAULT_AVAILABILITY,
             ),
             Professional(
-                user_id=pro_baba.id,
-                category_id=cats[1].id,
-                title="Babá experiente",
-                description="Cuidado infantil com carinho, rotina educativa e apoio leve nas tarefas domésticas.",
-                city="Santos",
+                user_id=pro_unhas.id,
+                category_id=cat_map["unhas"].id,
+                title="Nail designer",
+                description="Alongamento em gel, nail art criativa e manicure spa.",
+                city="São Vicente",
                 state="SP",
-                price_from=140,
-                rating=4.9,
-                reviews_count=33,
+                price_from=80,
+                rating=4.8,
+                reviews_count=64,
                 whatsapp="5513966666666",
                 is_featured=True,
-                image="https://images.unsplash.com/photo-1584515933487-779824ad3d8f",
-                professional_type="baba",
-                job_specs=BABA_SPECS,
+                image="https://images.unsplash.com/photo-1604654894610-df63bc536371",
+                professional_type="unhas",
+                biography="Apaixonada por unhas impecáveis e design personalizado.",
+                job_specs=NAIL_SPECS,
                 availability=DEFAULT_AVAILABILITY,
             ),
         ]
         db.add_all(profs)
         db.flush()
 
+        services = [
+            Service(
+                professional_id=profs[0].id,
+                title="Corte feminino",
+                description="Corte, lavagem e finalização.",
+                duration=60,
+                price=90,
+            ),
+            Service(
+                professional_id=profs[0].id,
+                title="Coloração completa",
+                description="Coloração com produtos profissionais.",
+                duration=120,
+                price=180,
+            ),
+            Service(
+                professional_id=profs[1].id,
+                title="Manicure spa",
+                description="Cutilagem, esmaltação e hidratação.",
+                duration=45,
+                price=55,
+            ),
+            Service(
+                professional_id=profs[1].id,
+                title="Alongamento em gel",
+                description="Alongamento com acabamento natural.",
+                duration=90,
+                price=150,
+            ),
+        ]
+        db.add_all(services)
+        db.flush()
+
         reviews = [
-            Review(professional_id=profs[0].id, client_name="Fernando", rating=5, comment="Minha casa ficou impecável. Recomendo demais."),
-            Review(professional_id=profs[1].id, client_name="Camila", rating=5, comment="Babá carinhosa e muito responsável."),
+            Review(
+                professional_id=profs[0].id,
+                client_name="Marina",
+                rating=5,
+                comment="Melhor coloração que já fiz! Atendimento impecável.",
+            ),
+            Review(
+                professional_id=profs[1].id,
+                client_name="Fernanda",
+                rating=5,
+                comment="Unhas perfeitas e duradouras. Super recomendo!",
+            ),
         ]
         db.add_all(reviews)
         db.flush()
@@ -137,18 +197,18 @@ def seed_database():
         req = ServiceRequest(
             client_id=client.id,
             professional_id=profs[0].id,
-            category_id=cats[0].id,
-            title="Limpeza residencial completa",
-            description="Preciso de faxina semanal em apartamento de 80m².",
+            category_id=cat_map["cabelo"].id,
+            title="Coloração e corte",
+            description="Preciso de coloração mechas e corte nas pontas.",
             location="Santos - SP",
             status="in_progress",
-            budget=160,
+            budget=200,
         )
         db.add(req)
         db.flush()
         db.add_all([
-            Message(request_id=req.id, sender_id=client.id, content="Olá, você consegue atender na quinta?"),
-            Message(request_id=req.id, sender_id=pro_diarista.id, content="Consigo sim. Tenho horário às 14h."),
+            Message(request_id=req.id, sender_id=client.id, content="Olá, você tem horário na quinta?"),
+            Message(request_id=req.id, sender_id=pro_cabelo.id, content="Tenho sim! Às 14h funciona para você?"),
         ])
         db.commit()
     finally:

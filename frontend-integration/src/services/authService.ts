@@ -15,15 +15,15 @@ export type RegisterPayload = {
 export const authService = {
   async login(payload: LoginPayload) {
     const { data } = await api.post('/auth/login', payload);
-    localStorage.setItem('@zola:token', data.access_token);
-    localStorage.setItem('@zola:user', JSON.stringify(data.user));
+    localStorage.setItem('@bellora:token', data.access_token);
+    localStorage.setItem('@bellora:user', JSON.stringify(data.user));
     return data;
   },
 
   async register(payload: RegisterPayload) {
     const { data } = await api.post('/auth/register', payload);
-    localStorage.setItem('@zola:token', data.access_token);
-    localStorage.setItem('@zola:user', JSON.stringify(data.user));
+    localStorage.setItem('@bellora:token', data.access_token);
+    localStorage.setItem('@bellora:user', JSON.stringify(data.user));
     return data;
   },
 
@@ -33,7 +33,7 @@ export const authService = {
   },
 
   logout() {
-    localStorage.removeItem('@zola:token');
-    localStorage.removeItem('@zola:user');
+    localStorage.removeItem('@bellora:token');
+    localStorage.removeItem('@bellora:user');
   },
 };

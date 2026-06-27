@@ -1,97 +1,42 @@
-# Zola Serviços — Backend FastAPI conectado ao Frontend React
+# Bellora — Backend FastAPI
 
-Este pacote cria o backend do marketplace local estilo GetNinjas usando **FastAPI** e deixa os arquivos de integração do frontend prontos para substituir o fake API/JSON Server.
+API do marketplace de beleza e estética.
 
 ## Estrutura
 
 ```txt
-zola_backend_fastapi/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── db/
-│   │   ├── models/
-│   │   └── schemas/
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend-integration/
-    ├── .env.example
-    └── src/services/
+back/backend/
+├── app/
+│   ├── api/
+│   ├── constants/
+│   ├── core/
+│   ├── db/
+│   ├── models/
+│   └── schemas/
+├── requirements.txt
+└── .env.example
 ```
 
-## Como rodar o backend
-
-Entre na pasta `backend`:
+## Como rodar
 
 ```bash
-cd backend
-```
-
-Crie o ambiente virtual:
-
-```bash
+cd back/backend
 python -m venv .venv
-```
-
-Ative no Windows PowerShell:
-
-```powershell
 .\.venv\Scripts\Activate.ps1
-```
-
-Ou no CMD:
-
-```cmd
-.venv\Scripts\activate
-```
-
-Instale as dependências:
-
-```bash
 pip install -r requirements.txt
-```
-
-Crie o `.env`:
-
-```bash
 copy .env.example .env
-```
-
-Rode a API:
-
-```bash
 uvicorn app.main:app --reload
 ```
 
-Acesse:
-
-```txt
-http://localhost:8000/docs
-```
+Docs: http://localhost:8000/docs
 
 ## Usuários de teste
 
-Cliente:
-
-```txt
-email: cliente@zola.com
-senha: 123456
-```
-
-Profissional (diarista):
-
-```txt
-email: diarista@zola.com
-senha: 123456
-```
-
-Profissional (babá):
-
-```txt
-email: baba@zola.com
-senha: 123456
-```
+| Papel | E-mail | Senha |
+|-------|--------|-------|
+| Cliente | cliente@bellora.com | 123456 |
+| Profissional (cabelo) | cabelo@bellora.com | 123456 |
+| Profissional (unhas) | unhas@bellora.com | 123456 |
 
 ## Endpoints principais
 

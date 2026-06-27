@@ -34,7 +34,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6)
     role: str = Field(pattern="^(client|professional)$", default="client")
-    professional_type: str | None = Field(default=None, pattern="^(diarista|baba)$")
+    professional_type: str | None = None
     category_id: int | None = None
     city: str | None = None
     state: str | None = Field(default=None, min_length=2, max_length=2)
@@ -106,6 +106,43 @@ class CategoryOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ServiceOut(BaseModel):
+    id: int
+    professional_id: int
+    title: str
+    description: str
+    duration: int
+    price: float
+
+    model_config = {"from_attributes": True}
+
+
+class ServiceCreate(BaseModel):
+    title: str = Field(min_length=2, max_length=160)
+    description: str = ""
+    duration: int = Field(default=60, ge=15, le=480)
+    price: float = Field(ge=0)
+
+    @field_validator("title", "description", mode="before")
+    @classmethod
+    def normalize_service_text(cls, value: str) -> str:
+        return normalize_free_text(str(value))
+
+
+class ServiceUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=2, max_length=160)
+    description: str | None = None
+    duration: int | None = Field(default=None, ge=15, le=480)
+    price: float | None = Field(default=None, ge=0)
+
+    @field_validator("title", "description", mode="before")
+    @classmethod
+    def normalize_service_text(cls, value: str | None) -> str | None:
+        if value is None or not str(value).strip():
+            return value
+        return normalize_free_text(str(value))
+
+
 class ProfessionalOut(BaseModel):
     id: int
     user_id: int
@@ -166,7 +203,7 @@ class ProfessionalUpdate(BaseModel):
     price_from: float | None = None
     whatsapp: str | None = None
     image: str | None = None
-    professional_type: str | None = Field(default=None, pattern="^(diarista|baba)$")
+    professional_type: str | None = None
     job_specs: dict[str, Any] | None = None
     availability: dict[str, list[str]] | None = None
 
@@ -206,6 +243,7 @@ class ProfessionalUpdate(BaseModel):
 
 class AppointmentCreate(BaseModel):
     professional_id: int
+    service_id: int | None = None
     appointment_date: date
     time_slot: str = Field(min_length=4, max_length=10)
     notes: str | None = None

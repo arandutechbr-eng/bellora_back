@@ -64,7 +64,7 @@ def _ensure_durable_storage() -> None:
         detail=(
             "Upload indisponível em produção. Configure SUPABASE_URL, "
             "SUPABASE_SERVICE_ROLE_KEY e SUPABASE_STORAGE_BUCKET no Render "
-            "(bucket público zola-uploads)."
+            "(bucket público bellora-uploads)."
         ),
     )
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.constants.categories import CATEGORY_SLUGS, SLUG_TO_NAME
 from app.db.session import get_db
 from app.models.models import Category, Professional, User
 from app.schemas.schemas import LoginInput, Token, UserCreate
@@ -19,27 +20,14 @@ DEFAULT_AVAILABILITY = {
     "sunday": [],
 }
 
-TYPE_CATEGORY_NAMES = {
-    "diarista": "Diarista",
-    "baba": "Babá",
-}
-
-TYPE_LABELS = {
-    "diarista": "Diarista",
-    "baba": "Babá",
-}
-
 
 def _resolve_category_id(db: Session, professional_type: str | None, category_id: int | None) -> int:
     if category_id:
         return category_id
 
-    if professional_type and professional_type in TYPE_CATEGORY_NAMES:
-        category = (
-            db.query(Category)
-            .filter(Category.name.ilike(TYPE_CATEGORY_NAMES[professional_type]))
-            .first()
-        )
+    if professional_type and professional_type in CATEGORY_SLUGS:
+        category_name = SLUG_TO_NAME[professional_type]
+        category = db.query(Category).filter(Category.name.ilike(category_name)).first()
         if category:
             return category.id
 
@@ -56,8 +44,11 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     if user_exists:
         raise HTTPException(status_code=400, detail="Este e-mail já está cadastrado.")
 
-    if payload.role == "professional" and not payload.professional_type:
-        raise HTTPException(status_code=400, detail="Informe o tipo: diarista ou babá.")
+    if payload.role == "professional" and not payload.professional_type and not payload.category_id:
+        raise HTTPException(status_code=400, detail="Informe a categoria do profissional.")
+
+    if payload.professional_type and payload.professional_type not in CATEGORY_SLUGS:
+        raise HTTPException(status_code=400, detail="Categoria de profissional inválida.")
 
     user = User(
         name=payload.name,
@@ -72,14 +63,14 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
 
     if payload.role == "professional":
         category_id = _resolve_category_id(db, payload.professional_type, payload.category_id)
-        type_label = TYPE_LABELS.get(payload.professional_type or "", "Profissional")
+        type_label = SLUG_TO_NAME.get(payload.professional_type or "", "Profissional")
 
         professional = Professional(
             user_id=user.id,
             category_id=category_id,
             professional_type=payload.professional_type,
-            title=payload.title or f"{user.name} - {payload.professional_type or 'profissional'}",
-            description=payload.description or f"profissional {type_label.lower()} disponível na plataforma.",
+            title=payload.title or f"{user.name} — {type_label}",
+            description=payload.description or f"Profissional de {type_label.lower()} disponível na plataforma.",
             city=payload.city or "santos",
             state=payload.state or "sp",
             price_from=payload.price_from or 0,

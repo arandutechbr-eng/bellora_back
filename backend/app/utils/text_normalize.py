@@ -72,12 +72,33 @@ def normalize_state(value: str) -> str:
 
 
 def normalize_professional_type(value: str) -> str:
-    fixed = fix_typos(value)
-    if fixed in {"baba", "babá"}:
-        return "baba"
-    if fixed.startswith("diar"):
-        return "diarista"
-    return fixed
+    fixed = fix_typos(value).replace(" ", "-")
+    slug_aliases = {
+        "cabelo": "cabelo",
+        "cabeleireira": "cabelo",
+        "colorista": "cabelo",
+        "unhas": "unhas",
+        "manicure": "unhas",
+        "nail": "unhas",
+        "cilios": "cilios",
+        "cílios": "cilios",
+        "lash": "cilios",
+        "sobrancelhas": "sobrancelhas",
+        "sobrancelha": "sobrancelhas",
+        "estetica": "estetica",
+        "estética": "estetica",
+        "podologia": "podologia",
+        "maquiagem": "maquiagem",
+        "make": "maquiagem",
+        "massagem": "massagem",
+        "massoterapia": "massagem",
+        "terapia-capilar": "terapia-capilar",
+        "depilacao": "depilacao",
+        "depilação": "depilacao",
+        "micropigmentacao": "micropigmentacao",
+        "micropigmentação": "micropigmentacao",
+    }
+    return slug_aliases.get(fixed, fixed)
 
 
 def normalize_job_specs(specs: dict[str, Any] | None) -> dict[str, Any] | None:
