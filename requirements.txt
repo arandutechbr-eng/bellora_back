@@ -1,1 +1,12 @@
--r backend/requirements.txt
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg[binary]
+bcrypt>=4.1.0
+python-jose
+python-multipart
+pydantic
+pydantic-settings
+email-validator
+httpx
+stripe

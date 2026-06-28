@@ -6,7 +6,7 @@ services:
     name: bellora-back
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: bash start.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
