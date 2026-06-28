@@ -1,14 +1,12 @@
 # bellora_back — deploy no Render
-# Repo: github.com/arandutechbr-eng/bellora_back
-# Estrutura no GitHub: backend/app/ (não back/backend/)
+# https://github.com/arandutechbr-eng/bellora_back
 
 services:
   - type: web
     name: bellora-back
     runtime: python
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: bash start.sh
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION

@@ -1,6 +1,29 @@
-# Bellora — Backend FastAPI
+## Deploy no Render
 
-API do marketplace de beleza e estética.
+Repo GitHub: `arandutechbr-eng/bellora_back`
+
+Estrutura no GitHub (raiz do repo):
+
+```txt
+bellora_back/
+├── backend/
+│   ├── app/
+│   └── requirements.txt
+├── requirements.txt      → inclui backend/requirements.txt
+└── start.sh              → entra em backend/ e sobe o uvicorn
+```
+
+### Configuração Render (copie e cole)
+
+| Campo | Valor |
+|-------|--------|
+| **Root Directory** | *(vazio)* |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `bash start.sh` |
+
+Variável de ambiente: `PYTHON_VERSION=3.11.9`
+
+> **Não use** `back/backend` — isso só existe no seu PC, não no GitHub.
 
 ## Estrutura
 

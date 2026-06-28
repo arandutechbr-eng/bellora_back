@@ -1,11 +1,1 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg[binary]
-passlib[bcrypt]
-bcrypt==4.0.1
-python-jose
-python-multipart
-pydantic
-pydantic-settings
-email-validator
+-r backend/requirements.txt
