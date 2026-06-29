@@ -50,11 +50,19 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     if payload.professional_type and payload.professional_type not in CATEGORY_SLUGS:
         raise HTTPException(status_code=400, detail="Categoria de profissional inválida.")
 
+    if payload.cpf:
+        cpf_clean = "".join(filter(str.isdigit, payload.cpf))
+        existing_cpf = db.query(User).filter(User.cpf == cpf_clean).first()
+        if existing_cpf:
+            raise HTTPException(status_code=400, detail="CPF já cadastrado.")
+
     user = User(
         name=payload.name,
         email=payload.email,
         password_hash=hash_password(payload.password),
         role=payload.role,
+        phone=payload.phone,
+        cpf="".join(filter(str.isdigit, payload.cpf)) if payload.cpf else None,
     )
 
     db.add(user)

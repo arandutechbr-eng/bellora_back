@@ -14,6 +14,14 @@ def run_migrations(engine: Engine) -> None:
     inspector = inspect(engine)
     bool_default = _bool_default(engine)
 
+    if "users" in inspector.get_table_names():
+        columns = _column_names(inspector, "users")
+        with engine.begin() as conn:
+            if "phone" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"))
+            if "cpf" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN cpf VARCHAR(14)"))
+
     if "professionals" in inspector.get_table_names():
         columns = _column_names(inspector, "professionals")
         with engine.begin() as conn:

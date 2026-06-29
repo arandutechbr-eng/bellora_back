@@ -33,6 +33,8 @@ class UserCreate(BaseModel):
     name: str = Field(min_length=3, max_length=120)
     email: EmailStr
     password: str = Field(min_length=6)
+    phone: str | None = Field(default=None, min_length=10, max_length=20)
+    cpf: str | None = Field(default=None, min_length=11, max_length=14)
     role: str = Field(pattern="^(client|professional)$", default="client")
     professional_type: str | None = None
     category_id: int | None = None
@@ -92,6 +94,7 @@ class UserPublic(BaseModel):
     name: str
     email: EmailStr
     role: str
+    phone: str | None = None
     avatar: str | None = None
 
     model_config = {"from_attributes": True}
