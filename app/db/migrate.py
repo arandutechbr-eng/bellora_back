@@ -34,52 +34,12 @@ def run_migrations(engine: Engine) -> None:
             if "biography" not in columns:
                 conn.execute(text("ALTER TABLE professionals ADD COLUMN biography TEXT"))
 
-    if "services" not in inspector.get_table_names():
-        with engine.begin() as conn:
-            conn.execute(
-                text(
-                    """
-                    CREATE TABLE services (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        professional_id INTEGER NOT NULL,
-                        title VARCHAR(160) NOT NULL,
-                        description TEXT NOT NULL DEFAULT '',
-                        duration INTEGER DEFAULT 60,
-                        price REAL DEFAULT 0,
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY(professional_id) REFERENCES professionals(id)
-                    )
-                    """
-                )
-            )
+    # services e appointments são criadas pelo SQLAlchemy (Base.metadata.create_all)
+    # antes de run_migrations ser chamado — não precisamos de CREATE TABLE aqui.
+    # Blocos CREATE TABLE com sintaxe SQLite (AUTOINCREMENT, DATETIME) foram removidos
+    # para não quebrar no PostgreSQL de produção.
 
-    if "appointments" not in inspector.get_table_names():
-        with engine.begin() as conn:
-            conn.execute(
-                text(
-                    f"""
-                    CREATE TABLE appointments (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        professional_id INTEGER NOT NULL,
-                        client_id INTEGER NOT NULL,
-                        appointment_date DATE NOT NULL,
-                        time_slot VARCHAR(10) NOT NULL,
-                        status VARCHAR(30) DEFAULT 'awaiting_payment',
-                        notes TEXT,
-                        total_amount REAL DEFAULT 0,
-                        deposit_amount REAL DEFAULT 0,
-                        deposit_paid BOOLEAN DEFAULT {bool_default},
-                        payment_status VARCHAR(30) DEFAULT 'pending',
-                        stripe_checkout_session_id VARCHAR(255),
-                        stripe_payment_intent_id VARCHAR(255),
-                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY(professional_id) REFERENCES professionals(id),
-                        FOREIGN KEY(client_id) REFERENCES users(id)
-                    )
-                    """
-                )
-            )
-    else:
+    if "appointments" in inspector.get_table_names():
         columns = _column_names(inspector, "appointments")
         with engine.begin() as conn:
             if "total_amount" not in columns:
