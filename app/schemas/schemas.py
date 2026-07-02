@@ -362,14 +362,9 @@ class ReviewOut(BaseModel):
 
 class ReviewCreate(BaseModel):
     professional_id: int
-    client_name: str
     rating: int = Field(ge=1, le=5)
     comment: str
-
-    @field_validator("client_name", mode="before")
-    @classmethod
-    def normalize_client_name(cls, value: str) -> str:
-        return normalize_name(str(value))
+    # client_name ignorado: preenchido pelo backend a partir do token de autenticação
 
     @field_validator("comment", mode="before")
     @classmethod
