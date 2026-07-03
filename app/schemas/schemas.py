@@ -291,6 +291,7 @@ class SlotSelection(BaseModel):
 
 class BatchCheckoutCreate(BaseModel):
     professional_id: int
+    service_id: int | None = None
     slots: list[SlotSelection] = Field(min_length=1, max_length=20)
     notes: str | None = None
     payment_mode: str = Field(default="deposit", pattern="^(deposit|full)$")

@@ -144,6 +144,7 @@ def checkout_batch(
         appointment = Appointment(
             professional_id=data.professional_id,
             client_id=user.id,
+            service_id=data.service_id,
             appointment_date=slot.appointment_date,
             time_slot=slot.time_slot,
             notes=data.notes,
