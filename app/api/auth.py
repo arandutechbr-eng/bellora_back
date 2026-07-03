@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from app.constants.categories import CATEGORY_SLUGS, SLUG_TO_NAME
@@ -6,10 +7,26 @@ from app.core.limiter import limiter
 from app.db.session import get_db
 from app.models.models import Category, Professional, User
 from app.schemas.schemas import LoginInput, Token, UserCreate
-from app.core.security import hash_password, verify_password, create_access_token
+from app.core.security import (
+    create_access_token,
+    create_password_reset_token,
+    decode_password_reset_token,
+    hash_password,
+    verify_password,
+)
+from app.services.email_service import send_password_reset_email
 from app.utils.json_fields import dumps_json
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+class ForgotPasswordInput(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordInput(BaseModel):
+    token: str
+    new_password: str
 
 DEFAULT_AVAILABILITY = {
     "monday": ["08:00", "09:00", "14:00"],
@@ -136,3 +153,38 @@ def login(request: Request, payload: LoginInput, db: Session = Depends(get_db)):
             "role": user.role,
         },
     }
+
+
+@router.post("/forgot-password")
+@limiter.limit("5/hour")
+def forgot_password(request: Request, payload: ForgotPasswordInput, db: Session = Depends(get_db)):
+    """
+    Envia e-mail de recuperação de senha.
+    Sempre retorna 200 para não revelar se o e-mail existe na base.
+    """
+    user = db.query(User).filter(User.email == payload.email).first()
+    if user:
+        token = create_password_reset_token(user.id)
+        reset_url = f"{settings.frontend_base_url}/redefinir-senha?token={token}"
+        send_password_reset_email(to=user.email, name=user.name, reset_url=reset_url)
+
+    return {"detail": "Se este e-mail estiver cadastrado, você receberá as instruções em breve."}
+
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordInput, db: Session = Depends(get_db)):
+    if len(payload.new_password) < 6:
+        raise HTTPException(status_code=400, detail="A nova senha deve ter no mínimo 6 caracteres.")
+
+    user_id = decode_password_reset_token(payload.token)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Link inválido ou expirado. Solicite um novo.")
+
+    user = db.get(User, int(user_id))
+    if not user:
+        raise HTTPException(status_code=400, detail="Usuário não encontrado.")
+
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    return {"detail": "Senha redefinida com sucesso. Faça login com a nova senha."}

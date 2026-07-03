@@ -50,6 +50,13 @@ class Settings(BaseSettings):
     # Habilitar seed de dados de teste (nunca True em produção)
     SEED_DATABASE: bool = False
 
+    # E-mail (SMTP) — para recuperação de senha
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = "noreply@bellora.com.br"
+
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE),
         env_file_encoding="utf-8",
