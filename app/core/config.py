@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     BOOKING_HOLD_MINUTES: int = 30
     PAYMENTS_MOCK: bool = False
 
+    # Habilitar seed de dados de teste (nunca True em produção)
+    SEED_DATABASE: bool = False
+
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE),
         env_file_encoding="utf-8",

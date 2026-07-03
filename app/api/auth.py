@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.constants.categories import CATEGORY_SLUGS, SLUG_TO_NAME
+from app.core.limiter import limiter
 from app.db.session import get_db
 from app.models.models import Category, Professional, User
 from app.schemas.schemas import LoginInput, Token, UserCreate
@@ -38,7 +39,8 @@ def _resolve_category_id(db: Session, professional_type: str | None, category_id
 
 
 @router.post("/register", response_model=Token)
-def register(payload: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def register(request: Request, payload: UserCreate, db: Session = Depends(get_db)):
     user_exists = db.query(User).filter(User.email == payload.email).first()
 
     if user_exists:
@@ -112,7 +114,8 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(payload: LoginInput, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, payload: LoginInput, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
 
     if not user:

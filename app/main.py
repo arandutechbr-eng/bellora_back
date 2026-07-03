@@ -3,6 +3,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy.exc import OperationalError
 from starlette import status
 import logging
@@ -10,6 +12,7 @@ import os
 
 from app.api.router import api_router
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.db.session import Base, engine
 from app.db.seed import ensure_default_availability, ensure_extra_categories, seed_database
 from app.db.migrate import run_migrations
@@ -18,6 +21,9 @@ app = FastAPI(
     title="Bellora API",
     version="1.0.0"
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # =========================
 # Pastas
@@ -90,7 +96,8 @@ def on_startup():
     try:
         Base.metadata.create_all(bind=engine)
         run_migrations(engine)
-        seed_database()
+        if settings.SEED_DATABASE:
+            seed_database()
         ensure_extra_categories()
         ensure_default_availability()
     except OperationalError as exc:
