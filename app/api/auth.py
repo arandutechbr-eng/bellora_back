@@ -3,6 +3,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from app.constants.categories import CATEGORY_SLUGS, SLUG_TO_NAME
+from app.core.config import settings
 from app.core.limiter import limiter
 from app.db.session import get_db
 from app.models.models import Category, Professional, User
