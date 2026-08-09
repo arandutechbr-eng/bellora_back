@@ -133,6 +133,8 @@ def root():
         "docs": "/docs",
         "storage": {
             "supabase_configured": settings.supabase_storage_configured,
+            "supabase_url": (settings.SUPABASE_URL or "").strip().rstrip("/")[:80] or None,
+            "bucket": settings.SUPABASE_STORAGE_BUCKET,
             "public_api_base_url": settings.public_api_base_url,
         },
         "payments": {

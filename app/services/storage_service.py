@@ -22,10 +22,14 @@ def _clean_env(value: str) -> str:
 
 
 def _supabase_base_url() -> str:
+    """
+    Aceita a Project URL limpa e também valores colados por engano
+    (ex.: .../rest/v1 ou .../storage/v1).
+    """
     base = _clean_env(settings.SUPABASE_URL).rstrip("/")
-    # Evita URL duplicada se alguém colar .../storage/v1
-    if base.endswith("/storage/v1"):
-        base = base[: -len("/storage/v1")]
+    for suffix in ("/storage/v1", "/rest/v1", "/auth/v1"):
+        if base.endswith(suffix):
+            base = base[: -len(suffix)].rstrip("/")
     return base
 
 
@@ -80,7 +84,10 @@ def _upload_supabase(filename: str, content: bytes, content_type: str) -> str:
             status_code=502,
             detail=(
                 f"Storage rejeitou o upload ({response.status_code}) no bucket '{bucket}'. "
-                f"Resposta Supabase: {body or 'sem detalhe'}"
+                f"URL: {upload_url}. "
+                f"Resposta Supabase: {body or 'sem detalhe'}. "
+                "Confira no Render se SUPABASE_URL é só https://SEU_REF.supabase.co "
+                "(sem /rest/v1 e sem connection string do banco)."
             ),
         )
 
