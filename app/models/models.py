@@ -45,6 +45,7 @@ class Professional(Base):
     rating: Mapped[float] = mapped_column(Float, default=5)
     reviews_count: Mapped[int] = mapped_column(Integer, default=0)
     whatsapp: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    salon_address: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
     image: Mapped[str | None] = mapped_column(String(500), nullable=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
