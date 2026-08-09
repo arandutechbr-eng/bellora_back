@@ -17,6 +17,18 @@ def _safe_extension(filename: str | None) -> str:
     return ".jpg"
 
 
+def _clean_env(value: str) -> str:
+    return value.strip().strip('"').strip("'")
+
+
+def _supabase_base_url() -> str:
+    base = _clean_env(settings.SUPABASE_URL).rstrip("/")
+    # Evita URL duplicada se alguém colar .../storage/v1
+    if base.endswith("/storage/v1"):
+        base = base[: -len("/storage/v1")]
+    return base
+
+
 def _upload_local(filename: str, content: bytes) -> str:
     file_path = UPLOAD_DIR / filename
     file_path.write_bytes(content)
@@ -25,30 +37,54 @@ def _upload_local(filename: str, content: bytes) -> str:
 
 
 def _upload_supabase(filename: str, content: bytes, content_type: str) -> str:
-    bucket = settings.SUPABASE_STORAGE_BUCKET.strip("/")
-    base = settings.SUPABASE_URL.rstrip("/")
-    object_path = f"{bucket}/{filename}"
-    upload_url = f"{base}/storage/v1/object/{object_path}"
+    bucket = _clean_env(settings.SUPABASE_STORAGE_BUCKET).strip("/") or "bellora-uploads"
+    base = _supabase_base_url()
+    service_key = _clean_env(settings.SUPABASE_SERVICE_ROLE_KEY)
+
+    if not base.startswith("https://") or "supabase.co" not in base:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "SUPABASE_URL inválida. Use a Project URL do painel "
+                "(ex.: https://xxxx.supabase.co), não a connection string do banco."
+            ),
+        )
+
+    if not service_key.startswith("eyJ"):
+        raise HTTPException(
+            status_code=503,
+            detail="SUPABASE_SERVICE_ROLE_KEY inválida. Use a chave service_role (secret) de Settings → API.",
+        )
+
+    # POST /storage/v1/object/{bucket}/{path}
+    upload_url = f"{base}/storage/v1/object/{bucket}/{filename}"
 
     headers = {
-        "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
-        "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
-        "Content-Type": content_type,
+        "Authorization": f"Bearer {service_key}",
+        "apikey": service_key,
+        "Content-Type": content_type or "application/octet-stream",
         "x-upsert": "true",
     }
 
     try:
-        response = httpx.post(upload_url, content=content, headers=headers, timeout=30.0)
+        response = httpx.post(upload_url, content=content, headers=headers, timeout=60.0)
     except httpx.HTTPError as exc:
-        raise HTTPException(status_code=502, detail="Falha ao enviar imagem para o storage.") from exc
-
-    if response.status_code not in (200, 201):
         raise HTTPException(
             status_code=502,
-            detail=f"Storage rejeitou o upload ({response.status_code}). Verifique bucket e permissões no Supabase.",
+            detail=f"Falha de rede ao falar com o Supabase Storage: {exc}",
+        ) from exc
+
+    if response.status_code not in (200, 201):
+        body = (response.text or "").strip()[:300]
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"Storage rejeitou o upload ({response.status_code}) no bucket '{bucket}'. "
+                f"Resposta Supabase: {body or 'sem detalhe'}"
+            ),
         )
 
-    return f"{base}/storage/v1/object/public/{object_path}"
+    return f"{base}/storage/v1/object/public/{bucket}/{filename}"
 
 
 def _ensure_durable_storage() -> None:
@@ -79,6 +115,15 @@ def store_uploaded_image(file: UploadFile) -> dict[str, str]:
 
     filename = f"{uuid4()}{_safe_extension(file.filename)}"
     content_type = file.content_type or "application/octet-stream"
+    if content_type == "application/octet-stream":
+        ext = _safe_extension(file.filename)
+        content_type = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".webp": "image/webp",
+            ".gif": "image/gif",
+        }.get(ext, "application/octet-stream")
 
     if settings.supabase_storage_configured:
         url = _upload_supabase(filename, content, content_type)
