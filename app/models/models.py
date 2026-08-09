@@ -87,6 +87,8 @@ class Appointment(Base):
     time_slot: Mapped[str] = mapped_column(String(10), nullable=False)
     status: Mapped[str] = mapped_column(String(30), default="awaiting_payment")
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    location_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # salao | domicilio
+    service_address: Mapped[str | None] = mapped_column(Text, nullable=True)
     total_amount: Mapped[float] = mapped_column(Float, default=0)
     deposit_amount: Mapped[float] = mapped_column(Float, default=0)
     deposit_paid: Mapped[bool] = mapped_column(Boolean, default=False)

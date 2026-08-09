@@ -56,6 +56,8 @@ def _build_list_item(
         payment_mode=appointment.payment_mode,
         batch_id=appointment.batch_id,
         notes=appointment.notes,
+        location_type=appointment.location_type,
+        service_address=appointment.service_address,
         professional_name=professional_name,
         client_name=client_name,
         created_at=appointment.created_at,
@@ -121,6 +123,11 @@ def checkout_batch(
 
     expire_stale_payment_holds(db)
 
+    location_type = data.location_type or "salao"
+    service_address = (data.service_address or "").strip() or None
+    if location_type == "domicilio" and not service_address:
+        raise HTTPException(status_code=400, detail="Informe o endereço para atendimento a domicílio.")
+
     seen: set[tuple[date, str]] = set()
     for slot in data.slots:
         key = (slot.appointment_date, slot.time_slot)
@@ -148,6 +155,8 @@ def checkout_batch(
             appointment_date=slot.appointment_date,
             time_slot=slot.time_slot,
             notes=data.notes,
+            location_type=location_type,
+            service_address=service_address if location_type == "domicilio" else None,
             status="awaiting_payment" if use_payments else "confirmed",
             total_amount=unit_total,
             deposit_amount=unit_deposit,
@@ -218,8 +227,11 @@ def checkout_appointment(
     batch = checkout_batch(
         BatchCheckoutCreate(
             professional_id=data.professional_id,
+            service_id=data.service_id,
             slots=[SlotSelection(appointment_date=data.appointment_date, time_slot=data.time_slot)],
             notes=data.notes,
+            location_type=data.location_type,
+            service_address=data.service_address,
             payment_mode="deposit",
         ),
         user,

@@ -250,8 +250,10 @@ class AppointmentCreate(BaseModel):
     appointment_date: date
     time_slot: str = Field(min_length=4, max_length=10)
     notes: str | None = None
+    location_type: str | None = Field(default=None, pattern="^(salao|domicilio)$")
+    service_address: str | None = None
 
-    @field_validator("notes", mode="before")
+    @field_validator("notes", "service_address", mode="before")
     @classmethod
     def normalize_notes(cls, value: str | None) -> str | None:
         if value is None or not str(value).strip():
@@ -267,6 +269,8 @@ class AppointmentOut(BaseModel):
     time_slot: str
     status: str
     notes: str | None = None
+    location_type: str | None = None
+    service_address: str | None = None
     total_amount: float = 0
     deposit_amount: float = 0
     deposit_paid: bool = False
@@ -294,9 +298,11 @@ class BatchCheckoutCreate(BaseModel):
     service_id: int | None = None
     slots: list[SlotSelection] = Field(min_length=1, max_length=20)
     notes: str | None = None
+    location_type: str | None = Field(default=None, pattern="^(salao|domicilio)$")
+    service_address: str | None = None
     payment_mode: str = Field(default="deposit", pattern="^(deposit|full)$")
 
-    @field_validator("notes", mode="before")
+    @field_validator("notes", "service_address", mode="before")
     @classmethod
     def normalize_notes(cls, value: str | None) -> str | None:
         if value is None or not str(value).strip():
@@ -340,6 +346,8 @@ class AppointmentListItem(BaseModel):
     payment_mode: str | None = None
     batch_id: str | None = None
     notes: str | None = None
+    location_type: str | None = None
+    service_address: str | None = None
     professional_name: str | None = None
     client_name: str | None = None
     created_at: datetime

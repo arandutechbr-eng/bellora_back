@@ -64,6 +64,10 @@ def run_migrations(engine: Engine) -> None:
                 conn.execute(text("ALTER TABLE appointments ADD COLUMN amount_due REAL DEFAULT 0"))
             if "service_id" not in columns:
                 conn.execute(text("ALTER TABLE appointments ADD COLUMN service_id INTEGER REFERENCES services(id)"))
+            if "location_type" not in columns:
+                conn.execute(text("ALTER TABLE appointments ADD COLUMN location_type VARCHAR(20)"))
+            if "service_address" not in columns:
+                conn.execute(text("ALTER TABLE appointments ADD COLUMN service_address TEXT"))
 
     if "reviews" in inspector.get_table_names():
         columns = _column_names(inspector, "reviews")
