@@ -11,6 +11,20 @@ from app.utils.json_fields import dumps_json
 router = APIRouter(prefix="/professionals", tags=["Professionals"])
 
 
+def _compose_salon_address(
+    street: str | None,
+    number: str | None,
+    complement: str | None,
+) -> str | None:
+    parts = [
+        (street or "").strip(),
+        f"nº {(number or '').strip()}" if (number or "").strip() else "",
+        (complement or "").strip(),
+    ]
+    composed = ", ".join(part for part in parts if part)
+    return composed or None
+
+
 def _apply_update(professional: Professional, data: ProfessionalUpdate) -> None:
     payload = data.model_dump(exclude_none=True)
     if "job_specs" in payload:
@@ -19,6 +33,14 @@ def _apply_update(professional: Professional, data: ProfessionalUpdate) -> None:
         payload["availability"] = dumps_json(payload["availability"])
     for key, value in payload.items():
         setattr(professional, key, value)
+
+    # Monta o endereço completo a partir dos campos separados
+    if any(key in payload for key in ("salon_street", "salon_number", "salon_complement")):
+        professional.salon_address = _compose_salon_address(
+            professional.salon_street,
+            professional.salon_number,
+            professional.salon_complement,
+        )
 
 
 @router.get("", response_model=list[ProfessionalOut])

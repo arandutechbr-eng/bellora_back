@@ -159,6 +159,9 @@ class ProfessionalOut(BaseModel):
     reviews_count: int
     whatsapp: str | None = None
     salon_address: str | None = None
+    salon_street: str | None = None
+    salon_number: str | None = None
+    salon_complement: str | None = None
     is_featured: bool
     image: str | None = None
     latitude: float | None = None
@@ -181,6 +184,9 @@ class ProfessionalCreate(BaseModel):
     price_from: float = 0
     whatsapp: str | None = None
     salon_address: str | None = None
+    salon_street: str | None = None
+    salon_number: str | None = None
+    salon_complement: str | None = None
     image: str | None = None
 
     @field_validator("title", "description", mode="before")
@@ -188,9 +194,9 @@ class ProfessionalCreate(BaseModel):
     def normalize_profile_text(cls, value: str) -> str:
         return normalize_free_text(str(value))
 
-    @field_validator("salon_address", mode="before")
+    @field_validator("salon_address", "salon_street", "salon_number", "salon_complement", mode="before")
     @classmethod
-    def normalize_salon_address(cls, value: str | None) -> str | None:
+    def normalize_salon_fields(cls, value: str | None) -> str | None:
         if value is None or not str(value).strip():
             return value
         return normalize_free_text(str(value))
@@ -215,6 +221,9 @@ class ProfessionalUpdate(BaseModel):
     price_from: float | None = None
     whatsapp: str | None = None
     salon_address: str | None = None
+    salon_street: str | None = None
+    salon_number: str | None = None
+    salon_complement: str | None = None
     image: str | None = None
     professional_type: str | None = None
     job_specs: dict[str, Any] | None = None
@@ -227,7 +236,7 @@ class ProfessionalUpdate(BaseModel):
             return value
         return normalize_professional_type(str(value))
 
-    @field_validator("title", "description", "salon_address", mode="before")
+    @field_validator("title", "description", "salon_address", "salon_street", "salon_number", "salon_complement", mode="before")
     @classmethod
     def normalize_profile_text(cls, value: str | None) -> str | None:
         if value is None or not str(value).strip():

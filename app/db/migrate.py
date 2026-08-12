@@ -35,6 +35,12 @@ def run_migrations(engine: Engine) -> None:
                 conn.execute(text("ALTER TABLE professionals ADD COLUMN biography TEXT"))
             if "salon_address" not in columns:
                 conn.execute(text("ALTER TABLE professionals ADD COLUMN salon_address TEXT"))
+            if "salon_street" not in columns:
+                conn.execute(text("ALTER TABLE professionals ADD COLUMN salon_street VARCHAR(200)"))
+            if "salon_number" not in columns:
+                conn.execute(text("ALTER TABLE professionals ADD COLUMN salon_number VARCHAR(30)"))
+            if "salon_complement" not in columns:
+                conn.execute(text("ALTER TABLE professionals ADD COLUMN salon_complement VARCHAR(120)"))
 
     # services e appointments são criadas pelo SQLAlchemy (Base.metadata.create_all)
     # antes de run_migrations ser chamado — não precisamos de CREATE TABLE aqui.
