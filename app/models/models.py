@@ -49,6 +49,7 @@ class Professional(Base):
     salon_street: Mapped[str | None] = mapped_column(String(200), nullable=True)
     salon_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
     salon_complement: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    salon_zipcode: Mapped[str | None] = mapped_column(String(12), nullable=True)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False)
     image: Mapped[str | None] = mapped_column(String(500), nullable=True)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
